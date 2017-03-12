@@ -1,0 +1,10 @@
+defaultIndent: "  "
+onlyOneBackUp: 1
+noAdditionalIndent:
+	item: 1
+indentAfterItems:
+	itemize: 0
+	enumerate: 0
+removeTrailingWhitespace: 1
+lookForAlignDelims:
+	tabbing: 0

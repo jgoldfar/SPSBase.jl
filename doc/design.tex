@@ -1,0 +1,115 @@
+\documentclass[11pt, draft]{amsart}
+\title{SPS.jl: A Scheduling Problem Solver, written in Julia}
+\author{Max Goldfarb}
+\newcommand{\bk}[1]{\left\{#1\right\}}
+\def\S{\mathcal{S}}
+\begin{document}
+\maketitle%
+
+\section{Introduction}
+Consider the problem of scheduling $n_p$ individuals on a regular weekday
+schedule for a given number of hours.
+The workplace is open a given number of hours $\bk{h_i=(o_i, c_i)}$ each day
+$i=1,\ldots,n_d$.
+Time intervals can be given integer weights, with higher weights representing
+greater need for employees at that time.
+Each individual may have an availability schedule $p_i=\bk{(d_i, e_i)}$ which
+must be strictly followed, as well as a maximum number of hours $M_i$.
+
+To be determined: How to handle soft schedule constraints such as
+non-overlapping expertise when possible, maximum amounts of contiguously
+scheduled time, employee preferences for times within their schedule, and
+different employee ``classes'' which handle different kinds of constraints.
+
+The general idea of the current method is to construct a profit functional $P(S)$ 
+over the space of possible employee schedules $\S$ which satisfies the 
+following properties, in order of importance:
+\begin{enumerate}
+  \item Coverage of higher weighted time increases profit, as does coverage of
+  previously un-covered time within the open hours of the workplace.
+  \item Scheduling longer contiguous times increases profit up to a maximum of
+   $M_h$ contiguous hours.
+  In other words, scheduling employees with too ``fine'' a resolution should be discouraged.
+  \item Scheduling employees with the same expertise during the same time reduces
+  profit.
+  \item Scheduling employees according to their preferences increases profit.
+\end{enumerate}
+
+The true problem also includes the following complication: certain sessions
+${s_i=(a_i, b_i)}$, $i=1,\ldots,n_s$, which span times $(a_i, b_i)$ must be
+covered by one individual from one group of employees.%, and during those times,
+%another individual should optionally be present to ``float''.
+
+The best way to handle the situation of different employee classes may be to
+solve this problem in two steps, with one scheduling problem just for the
+required sections, and then another for the employees which can be scheduled
+according to demand and other requirements.
+So in this way, the multi-class problem as formulated may be reduced to a
+multi-step version of the simpler problem just formulated.
+
+Also needing refinement is the space $\S$, and its conversion to a more
+traditional space over which numerical optimization can be performed.
+
+The hard constraint of availability for each person seems most apt in the
+current formalism to form the basis for the space $\S$; assume that the
+available time is to be divided into even divisions of $\Delta t$; then a
+schedule with a total of $n \Delta t$ minutes available can be reduced to $n$
+binary control variables, with true denoting the given employee being scheduled
+for that time, and false denoting the opposite.
+This space can be reduced slightly by eliminating employee availability outside
+the open hours for the workplace.
+Decreasing $\Delta t$ increases the computational complexity of the problem and
+requires employees to clock in and out more rapidly, both of which should be
+penalized.
+At this stage, $\Delta t$ is considered fixed, but in practice, should be chosen
+according to some experimentation.
+In any case, student schedules and the open hours are evenly divisible by
+$\Delta t$.
+
+\section{Formalization}
+A \emph{schedule} $\S$ is a vector of binary vectors
+\[
+  \S = \bk{s_1, \ldots, s_{n_p}}
+\]
+each $s_i = (s_{i1},\ldots,s_{in_s})$ has $n_s = \sum_j (e_j - d_j) / {\Delta t}$ components, each corresponding
+to the yes/no choice corresponding to the corresponding employee scheduled
+during the corresponding time slot.
+In this formulation, the constraint that individual $i$ works no more than $M_i$
+hours corresponds to $\sum s_i <= M_i / {\Delta t}$.
+Transform the schedule of open hours and weights corresponding to each time interval into the vector
+\[
+  \mathcal{O} = {h_i, \ldots, h_{n_d}},
+  \quad h_i = \bk{w_{ij},~j=1,\ldots, n_i := (c_i - o_i)/{\Delta t}}
+\]
+Define
+\[
+  J(\S) = \beta_1 J_1(\S) + \beta_2 J_2(\S) + \beta_2 J_3(\S) + \beta_4 J_4(\S),
+\]
+The first term corresponds to the main problem of covering the highest weighted (and/or uncovered) times with a
+\[
+  J_1(\S) = \sum_{k=1}^{n_p} \sum_{i=1}^{n_d} \sum_{j=1}^{n_i}w_{ij} s_{k,\bar{\imath}}
+\]
+where $s_{k,\bar{\imath}}$ is the control variable corresponding to employee $k$
+working during the slot $s_{ij}$.
+TBD:\@ note that this term only increases $P$ for covering higher weighted times, and while this may not be a problem in practice, but in general, some correction should be applied for a given schedule which increases the weights for uncovered time by an amount $\bar{w}_{ij}$.
+\emph{Note:} The fact that $s_{\cdot,\bar{\imath}}$ is not the same as $s_{\cdot,i}$ introduces a nonlinearity here, which will both increase the computational overhead of calculating $J_1$ (the cost of which can be paid once on the definition of the functional the first time.)
+Reducing the hard constraint of employee schedules to zero preference for being scheduled within the soft constraint of general preferences will remove this complicated nonlinearity, but may generate solutions which are infeasible in reality.
+%
+The second term corresponds to the promotion of schedules which have longer contiguously scheduled times.
+\[
+  J_2(\S) =
+\]
+%
+The third term corresponds to the goal of reducing the overlap between employees with expertise in the same topic.
+This may not be implemented immediately, since its implementation is more complicated and the problem can be avoided by pre-processing the availabilities.
+\[
+  J_3(\S) =
+\]
+where
+%
+The fourth term allows employee preference (outside of their hard-constraint) for certain hours above others.
+Due to the added complexity in building the functional and its evaluation, this term may also not be implemented immediately.
+\[
+  J_4(\S) =
+\]
+\end{document}
