@@ -1,13 +1,13 @@
 export Schedule, Employee, ScheduleWeights
 
-immutable ScheduleWeights
+struct ScheduleWeights
     day1::Vector{Int}
     day2::Vector{Int}
     day3::Vector{Int}
     day4::Vector{Int}
     day5::Vector{Int}
 end
-immutable Schedule{T}
+struct Schedule{T<:Number}
     day1::Vector{Tuple{T, T}}
     day2::Vector{Tuple{T, T}}
     day3::Vector{Tuple{T, T}}
@@ -33,3 +33,12 @@ function s_min{T}(s::Schedule{T}, bounds::Vector{Tuple{T, T}})
     t_min(s.day5, bounds[5])
     )
 end
+
+struct Employee
+    name::String
+    avail::Schedule
+    specialty::Int
+end
+Base.convert(::Type{Schedule}, e::Employee) = e.avail
+
+const EmployeeList = Vector{Employee}
