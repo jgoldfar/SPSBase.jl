@@ -1,25 +1,19 @@
-# immutable ScheduleVector
-#     day1::BitVector
-#     day2::BitVector
-#     day3::BitVector
-#     day4::BitVector
-#     day5::BitVector
-# end
-function _to_vec_len{T}(s::Tuple{T, T}, increment::Real)
+function _vec_len{T}(s::Tuple{T, T}, increment::Real)
     f, l = s
     ceil(Int, (l - f)/increment)
 end
-
-function to_vec(sched::Schedule, increment::Real)
-    veclen =
-    sum(map(v -> _to_vec_len(v, increment), sched.day1))+
-    sum(map(v -> _to_vec_len(v, increment), sched.day2))+
-    sum(map(v -> _to_vec_len(v, increment), sched.day3))+
-    sum(map(v -> _to_vec_len(v, increment), sched.day4))+
-    sum(map(v -> _to_vec_len(v, increment), sched.day5))
-    BitVector(veclen)
+function _length(sched::Schedule, increment::Real)
+     sum(
+     map(v -> _vec_len(v, increment),
+     Iterators.flatten(_to_iter(sched)))
+     )
+ end
+function to_vec(sched::Schedule, increment::Real = 1)
+    BitVector(_length(sched, increment))
 end
+to_vec(e::Employee, increment::Real = 1) = to_vec(Schedule(e), increment)
+to_vec(e::EmployeeList, increment::Real = 1) = BitVector(sum(_length(Schedule(t), increment) for t in e))
 
-function to_sched(orig::Schedule, vec::Vector{Bool}, increment::Real)
+function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1)
 
 end
