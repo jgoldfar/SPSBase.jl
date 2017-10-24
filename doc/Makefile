@@ -1,5 +1,5 @@
 LATEX=latexmk -pdf -bibtex
-CHKTEX_ARGS=-n 3
+CHKTEX_ARGS=-n 3 -n 6
 TEX_SOURCES=$(wildcard *.tex)
 TEX_SOURCES_BASENAME=$(basename $(TEX_SOURCES))
 
@@ -26,7 +26,7 @@ clean-fmt:
 chktex-all: $(addprefix lint-,$(addsuffix .out,$(TEX_SOURCES_BASENAME)))
 
 clean-chktex:
-	-rm lint-*.out
+	$(RM) lint-*.out
 
 check: $(addprefix check-,$(TEX_SOURCES_BASENAME))
 
