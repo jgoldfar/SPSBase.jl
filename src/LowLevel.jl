@@ -1,4 +1,4 @@
-function _vec_len{T}(s::Tuple{T, T}, increment::Real)
+function _vec_len(s::Tuple{T, T}, increment::Real) where {T}
     f, l = s
     ceil(Int, (l - f)/increment)
 end
