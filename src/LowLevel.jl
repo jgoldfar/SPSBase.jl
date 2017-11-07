@@ -47,31 +47,7 @@ function _to_raw_sched(orig, vec, increment)
     end
     rawSched
 end
-# function expandInterval(tup1, tup2)
-#     if first(tup2) == last(tup1)
-#         return (first(tup1), last(tup2))
-#     elseif last(tup2) == first(tup1)
-#         return (first(tup2), last(tup1))
-#     else
-#         return tup1
-#     end
-# end
-# function condense_day_sched(sched)
-#     r1 = map(t->foldl(expandInterval, t, sched), sched)
-#     r2 = map(t->foldl(expandInterval, t, r1), r1)
-#     @show r2
-#     r2
-# end
-# function _condense_sched(sched::Schedule)
-#     for day in fieldnames(typeof(sched))
-#         schedDay = getfield(sched, day)
-        
-#     end
-#     return sched
-# end
 function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1)
-    # rawSchedule = _to_raw_sched(orig, vec, increment)
-    # return _condense_sched(rawSchedule)
     _to_raw_sched(orig, vec, increment)
 end
 function to_sched(orig::Employee, vec::AbstractVector{Bool}, increment::Real = 1)
