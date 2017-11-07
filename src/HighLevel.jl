@@ -1,18 +1,36 @@
-export Schedule, ScheduleWeights, Employee, EmployeeList
+export Schedule, Employee, EmployeeList
 
-struct ScheduleWeights
-    day1::Vector{Int}
-    day2::Vector{Int}
-    day3::Vector{Int}
-    day4::Vector{Int}
-    day5::Vector{Int}
-end
+# export ScheduleWeights
+# struct ScheduleWeights
+#     day1::Vector{Int}
+#     day2::Vector{Int}
+#     day3::Vector{Int}
+#     day4::Vector{Int}
+#     day5::Vector{Int}
+# end
+## Define some convenience functions for ScheduleWeights
+# _to_iter(weights::ScheduleWeights) = (getfield(weights, n) for n in fieldnames(typeof(weights)))
+# _lengths(weights::ScheduleWeights) = map(length, _to_iter(weights))
+# Base.length(weights::ScheduleWeights) = sum(_lengths(weights))
+
+_isvalid_block(t::Tuple{T, T}) where {T <: Number} = last(t) > first(t)
+
 struct Schedule{T<:Number}
     day1::Vector{Tuple{T, T}}
     day2::Vector{Tuple{T, T}}
     day3::Vector{Tuple{T, T}}
     day4::Vector{Tuple{T, T}}
     day5::Vector{Tuple{T, T}}
+
+    function Schedule(day1::Vector{Tuple{T, T}}, day2::Vector{Tuple{T, T}}, day3::Vector{Tuple{T, T}}, day4::Vector{Tuple{T, T}}, day5::Vector{Tuple{T, T}}) where {T <: Number}
+        new{T}(
+            filter(_isvalid_block, day1),
+            filter(_isvalid_block, day2),
+            filter(_isvalid_block, day3),
+            filter(_isvalid_block, day4),
+            filter(_isvalid_block, day5)
+        )
+    end
 end
 ## Define some convenience functions for ScheduleWeights
 _to_iter(weights::ScheduleWeights) = (getfield(weights, n) for n in fieldnames(weights))
