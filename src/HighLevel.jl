@@ -59,6 +59,23 @@ function Base.getindex(sched::Schedule, i::Int)
     first(next(sched, i))
 end
 Base.endof(sched::Schedule) = length(sched)
+function schedules_isapprox(sched1::Schedule, sched2::Schedule)
+    if length(sched1) != length(sched2)
+        return false
+    end
+    sched1Flat = Iterators.flatten(_to_iter(sched1))
+    sched2Flat = Iterators.flatten(_to_iter(sched2))
+    for (v1, v2) in zip(sched1Flat, sched2Flat)
+        if !isapprox(first(v1), first(v2))
+            return false
+        end
+        if !isapprox(last(v1), last(v2))
+            return false
+        end
+    end
+    return true
+end
+# isvalid(sched::Schedule, weights::ScheduleWeights) = length(weights) == length(sched)
 
 function t_min(vec::Vector{Tuple{T, T}}, overall::Tuple{T, T}) where {T}
     isvalid(t::Tuple{T, T}) = first(t)<last(t)
