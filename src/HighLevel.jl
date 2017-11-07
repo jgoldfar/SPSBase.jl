@@ -32,18 +32,17 @@ struct Schedule{T<:Number}
         )
     end
 end
-## Define some convenience functions for ScheduleWeights
-_to_iter(weights::ScheduleWeights) = (getfield(weights, n) for n in fieldnames(weights))
-_lengths(weights::ScheduleWeights) = map(length, _to_iter(weights))
-Base.length(weights::ScheduleWeights) = sum(_lengths(weights))
+
+emptySchedule(T) = Schedule(Tuple{T,T}[], Tuple{T,T}[], Tuple{T,T}[], Tuple{T,T}[], Tuple{T,T}[])
+
 ## Define iteration over a Schedule for convenience.
-_to_iter(sched::Schedule) = (getfield(sched, n) for n in fieldnames(sched))
+_to_iter(sched::Schedule) = (getfield(sched, n) for n in fieldnames(typeof(sched)))
 _lengths(sched::Schedule) = map(length, _to_iter(sched))
 Base.length(sched::Schedule) = sum(_lengths(sched))
 Base.start(::Schedule) = 1
-function Base.next{T}(sched::Schedule{T}, state::Int)
+function Base.next(sched::Schedule{T}, state::Int) where {T}
     accum = 0
-    for n in fieldnames(sched)
+    for n in fieldnames(typeof(sched))
         vec = getfield(sched, n)
         len = length(vec)
         if state <= accum + len
@@ -54,21 +53,19 @@ function Base.next{T}(sched::Schedule{T}, state::Int)
     return (zero(T), zero(T)), state + 1
 end
 Base.done(sched::Schedule, state::Int) = state > length(sched)
-Base.eltype{T}(::Type{Schedule{T}}) = Tuple{T, T}
+Base.eltype(::Type{Schedule{T}}) where {T} = Tuple{T, T}
 function Base.getindex(sched::Schedule, i::Int)
     done(sched, i) && throw(BoundsError(sched, i))
     first(next(sched, i))
 end
 Base.endof(sched::Schedule) = length(sched)
 
-isvalid(sched::Schedule, weights::ScheduleWeights) = length(weights) == length(sched)
-
-function t_min{T}(vec::Vector{Tuple{T, T}}, overall::Tuple{T, T})
+function t_min(vec::Vector{Tuple{T, T}}, overall::Tuple{T, T}) where {T}
     isvalid(t::Tuple{T, T}) = first(t)<last(t)
     omin, omax = overall
     filter(isvalid, [(max(first(t), omin), min(last(t), omax)) for t in vec])
 end
-function s_min{T}(s::Schedule{T}, bounds::Vector{Tuple{T, T}})
+function s_min(s::Schedule{T}, bounds::Vector{Tuple{T, T}}) where {T}
     Schedule(
     t_min(s.day1, bounds[1]),
     t_min(s.day2, bounds[2]),
