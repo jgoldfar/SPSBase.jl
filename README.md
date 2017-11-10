@@ -1,18 +1,33 @@
 # README #
 
-This is the repo I use as a shell for other work related projects and their repositories.
+SPS.jl is a user-friendly and fast employee scheduling solver written in Julia.
 
-### What is this repository for? ###
+## Dependencies/Setup ##
 
-* Notes
-* Reproducibility of my history and previous results
+* TeXLive (or at least BasicTeX) is required to build the documentation.
 
-### How do I get set up? ###
+* This repository needs to be on your `JULIA_PKGDIR`.
 
-* The biggest dependency for this repo is TeXLive for the TeX files
-* For subrepos, we use (variously) Julia, MATLAB, C and libraries, R, PHP, Python, and many others.
-* For syncing binary files, we use [Bittorrent Sync](http://www.getsync.com). See the downloads for our IgnoreList file; the mercurial repo directories should only sync once (!) otherwise you get repo corruption.
+## Roadmap ##
 
-### Who do I talk to? ###
+### v1.0
+* Working solver implementing multi-employee scheduling based on availability.
+
+* Import/export story:
+
+* * Lightweight DSL allowing input in a flat file format
+
+* * Export to same file format
+
+### v2.0
+* Build preferences and non-overlapping specialty soft constraints into functional calculation
+
+* Import/export story:
+
+* * import availability from GCal -> flat file format
+
+* * export directly to GCal or iCal format
+
+## Who do I talk to? ##
 
 * Jonathan Goldfarb (jgoldfar@my.fit.edu)
