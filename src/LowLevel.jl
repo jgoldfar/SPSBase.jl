@@ -106,7 +106,8 @@ to_sched(bs)
 
 Re-construct a schedule including only the times scheduled out of `bs::BitSchedule`.
 
-`to_sched` also operates on `orig::Employee` and `orig::EmployeeList`.
+`to_sched` also operates on `orig::Employee`, `orig::EmployeeList`, `orig::BitSchedule`,
+and `orig::BitScheduleList`.
 
 The current implementation is entirely contained in _to_raw_sched, but more separation into
 separate functionality is planned.
@@ -115,7 +116,7 @@ function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1
     _to_raw_sched(orig, vec, increment)
 end
 function to_sched(orig::Employee, vec::AbstractVector{Bool}, increment::Real = 1)
-    Employee(orig.name, to_sched(Schedule(orig), vec, increment), orig.specialty)
+    Employee(orig.name, to_sched(Schedule(orig), vec, increment), orig.maxTime, orig.specialty)
 end
 function to_sched(orig::EmployeeList, vec::AbstractVector{Bool}, increment::Real = 1)
     empsOut = Employee[]
@@ -144,6 +145,7 @@ function _create_times_vec!(times::Vector{Float64}, s::Schedule{T}, timesInd::In
     end
     timesInd
 end
+
 """
     BitSchedule(sched, vec, times, increment)
 
@@ -182,6 +184,13 @@ struct BitScheduleList{T<:Number}
     end
 end
 
+"""
+    `to_sched(orig)`
+
+operates on `orig::BitSchedule` and `orig::BitScheduleList`.
+"""
+to_sched(orig::BitSchedule) = to_sched(orig.sched, orig.vec, orig.increment)
+to_sched(orig::BitScheduleList) = to_sched(orig.employees, orig.vec, orig.increment)
 ###
 # Helpers for functional generation
 ###
@@ -194,8 +203,8 @@ in `vec` are adjacent in real time, assuming they were generated with increment 
 
 Returns a AbstractMatrix{Bool} containing adjacency information.
 """
-function to_adjacency_mat(vec::BitVector, times::Vector{Float64}, increment::Real)
-    nv = length(vec)
+function to_adjacency_mat(times::Vector{Float64}, increment::Real)
+    nv = length(times)
     bmo = Tridiagonal(BitVector(nv-1), BitVector(nv), BitVector(nv-1))
     floatIncrement = Float64(increment)
     bmo[1, 2] = isapprox(times[2], times[1] + floatIncrement)
@@ -212,7 +221,30 @@ end
 
 Evaluate `to_adjacency_mat` on the `vec` and `times` components of `bs::BitSchedule`
 """
-to_adjacency_mat(bs::BitSchedule) = to_adjacency_mat(bs.vec, bs.times, bs.increment)
+to_adjacency_mat(bs::BitSchedule) = to_adjacency_mat(bs.times, bs.increment)
+
+function _to_adjacency_mat(bsl::BitScheduleList)
+    timesInd = 1
+    adjMats = Vector{Tridiagonal{Bool, BitVector}}(length(bsl.employees))
+    for (i, e) in enumerate(bsl.employees)
+        ne = _sps_vec_length(e.avail, bsl.increment)
+        adjMats[i] = to_adjacency_mat(bsl.times[timesInd:(timesInd + ne - 1)], bsl.increment)
+        timesInd += ne
+    end
+    adjMats
+end
+function to_adjacency_mat(bsl::BitScheduleList)
+    nv = length(bsl.vec)
+    adjMats = _to_adjacency_mat(bsl)
+    adjMat = falses(nv, nv)
+    matPtr = 1
+    for mat in adjMats
+        nAdj = size(mat, 1)
+        adjMat[matPtr:(matPtr+nAdj-1),matPtr:(matPtr+nAdj-1)] = Matrix(mat)
+        matPtr += nAdj
+    end
+    adjMat
+end
 
 """
 to_overlap_mat(empList, times)

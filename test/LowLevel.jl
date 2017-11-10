@@ -14,10 +14,10 @@ emp1sched = Schedule(
 [(9, 17)],
 [(9, 9), (13, 16)]
 )
-emp1 = Employee("Max", emp1sched, 0)
+emp1 = Employee("Max", emp1sched)
 
 emp2sched = Schedule([(8, 10)], [(0, 0)], [(0, 0)], [(0, 0)], [(0, 0)])
-emp2 = Employee("Limited", emp2sched, 0)
+emp2 = Employee("Limited", emp2sched)
 
 schedulingResolution = 1//2
 
@@ -100,19 +100,24 @@ end
         # 8 is not adjacent to 9, and 10 is not adjacent to 12 of next day
         @test !bsAdjacencyMatrix[1, 3] && !bsAdjacencyMatrix[4, 5]
     end
+    @testset "Vectorization" begin
+        fill!(bs.vec, true)
+        @test SPS.schedules_isapprox(SPS.to_sched(bs), bsTestSched)
+    end
 end
 
 @testset "EmployeeList" begin
     # An EmployeeList is just a list of employees...
-    nEmployees = 2
+    nEmployees = 4
     emp2sched = Schedule([(8, 10)], [(0, 0)], [(0, 0)], [(0, 0)], [(0, 0)])
-    emp3 = Employee("Limited $(nEmployees + 1)", Schedule([(0, 0)], [(8, 10), (12, 13)], [(0, 0)], [(8, 10)], [(0, 0)]), nEmployees + 1)
+    emp3sched = Schedule([(0, 0)], [(8, 10), (12, 13)], [(0, 0)], [(8, 10)], [(0, 0)])
+    emp3 = Employee("Limited $(nEmployees + 1)", emp3sched, Inf, nEmployees + 1)
     employees = push!(
-        [Employee("Limited $i", emp2sched, i) for i in 1:nEmployees],
+        [Employee("Limited $i", emp2sched, Inf, i) for i in 1:nEmployees],
         emp3
     )
     
-    # Test vectorizationof a list of employees
+    # Test vectorization of a list of employees
     employeesVec = SPS.to_vec(employees, schedulingResolution)
     fill!(employeesVec, true)
 
@@ -120,7 +125,8 @@ end
     length_emp2Vec = length(SPS.to_vec(emp2, schedulingResolution))
     length_emp2Components = nEmployees*length_emp2Vec
     length_employeesVec = length(employeesVec)
-    @test length_employeesVec == length_emp2Components + length(SPS.to_vec(emp3, schedulingResolution))
+    length_emp3Vec = length(SPS.to_vec(emp3, schedulingResolution))
+    @test length_employeesVec == length_emp2Components + length_emp3Vec
 
     # to_vec and to_sched are nearly inverse functions
     employeeSchedules = SPS.to_sched(employees, employeesVec, schedulingResolution)
@@ -134,6 +140,21 @@ end
         @test !any(bsl.times .<= 1.0)
         @test isapprox(bsl.increment, schedulingResolution)
         
+        @testset "to_adjacency_mat" begin
+            emp2bs = SPS.BitSchedule(emp2.avail, schedulingResolution)
+            emp2AdjacencyMatrix = SPS.to_adjacency_mat(emp2bs)
+            bslAdjacencyMatrices = SPS._to_adjacency_mat(bsl)
+            @test all(mat == emp2AdjacencyMatrix for mat in bslAdjacencyMatrices[1:nEmployees])
+            @test length(bslAdjacencyMatrices) == length(employees)
+            emp3bs = SPS.BitSchedule(emp3.avail, schedulingResolution)
+            emp3AdjacencyMatrix = SPS.to_adjacency_mat(emp3bs)
+            @test bslAdjacencyMatrices[end] == emp3AdjacencyMatrix
+
+            bslAdjacencyMatrix = SPS.to_adjacency_mat(bsl)
+            @test bslAdjacencyMatrix[1:length_emp2Vec, 1:length_emp2Vec] == emp2AdjacencyMatrix
+            @test bslAdjacencyMatrix[(end-length_emp3Vec+1):end, (end-length_emp3Vec+1):end] == emp3AdjacencyMatrix
+        end
+
         @testset "to_overlap_mat" begin
             bslOverlapMatrix = SPS.to_overlap_mat(bsl)
             @test all(diag(bslOverlapMatrix))
@@ -172,6 +193,11 @@ end
                                         false true false false;
                                         true false true true;
                                         true false true true]
+        end
+        @testset "to_sched" begin
+            fill!(bsl.vec, true)
+            bslSched = SPS.to_sched(bsl)
+            @test all(SPS.schedules_isapprox(bslSched[i].avail, employeeSchedules[i].avail) for i in 1:length(bslSched)) 
         end
     end
 end
