@@ -2,6 +2,8 @@
 
 SPS.jl is a user-friendly and fast employee scheduling solver written in Julia.
 
+Version: v0.0
+
 ## Dependencies/Setup ##
 
 * TeXLive (or at least BasicTeX) is required to build the documentation.
