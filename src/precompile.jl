@@ -11,7 +11,7 @@ for T in (Int, Float64)
         precompile(to_sched, (Schedule{T}, BitVector, T2))
         precompile(generateFunctionalAndControlVector, (EmployeeList{T}, T2, T2))
         precompile(generateFunctionalAndControlVector, (EmployeeList{T}, Vector{Float64}, T2, T2))
-        precompile(generateFunctional, (BitScheduleList{T}, Vector{Float64}, T2)
+        precompile(generateFunctional, (BitScheduleList{T}, Vector{Float64}, T2))
     end
 
     precompile(_create_times_vec!, (Vector{Float64}, Schedule{T}, Int, T))
