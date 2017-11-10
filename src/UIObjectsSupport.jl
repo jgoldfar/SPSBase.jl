@@ -50,11 +50,3 @@ function t_min(vec::Vector{Tuple{T, T}}, overall::Tuple{T, T}) where {T}
     omin, omax = overall
     filter(_isvalid_block, [(max(ft, omin), min(lt, omax)) for (ft, lt) in vec])
 end
-
-
-## Define some convenience functions for ScheduleWeights
-# _to_iter(weights::ScheduleWeights) = (getfield(weights, n) for n in fieldnames(typeof(weights)))
-# _lengths(weights::ScheduleWeights) = map(length, _to_iter(weights))
-# Base.length(weights::ScheduleWeights) = sum(_lengths(weights))
-
-# isvalid(sched::Schedule, weights::ScheduleWeights) = length(weights) == length(sched)

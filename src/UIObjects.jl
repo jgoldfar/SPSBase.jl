@@ -171,19 +171,6 @@ function s_min(s::Schedule{T}, bounds::Vector{Tuple{T, T}}) where {T}
 end
 
 ###
-# ScheduleWeights
-###
-
-# export ScheduleWeights
-# struct ScheduleWeights
-#     day1::Vector{Int}
-#     day2::Vector{Int}
-#     day3::Vector{Int}
-#     day4::Vector{Int}
-#     day5::Vector{Int}
-# end
-
-###
 # Employee and EmployeeList
 ###
 export Employee, EmployeeList
@@ -197,7 +184,11 @@ and an integer `specialty`.
 struct Employee{T}
     name::String
     avail::Schedule{T}
+    maxTime::Float64
     specialty::Int
+end
+function Employee(name::String, s::Schedule{T}) where {T}
+    Employee(name, s, Inf, 0)
 end
 Base.convert(::Type{Schedule}, e::Employee) = e.avail
 

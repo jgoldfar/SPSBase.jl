@@ -35,4 +35,5 @@ emp1sched = Schedule(
 
     @test SPS.t_min([(1,1), (9, 17), (0, 5), (8, 20), (20, 25)], (9, 17)) == [(9, 17), (9, 17)]
 end
+
 end # testset

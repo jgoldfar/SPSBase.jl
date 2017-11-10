@@ -15,7 +15,7 @@ emp1sched = Schedule(
 [(9, 17)],
 [(9, 9), (13, 16)]
 )
-emp1 = Employee("Max", emp1sched, 0)
+emp1 = Employee("Max", emp1sched)
 
 schedulingResolution = 1//2
 
@@ -23,7 +23,7 @@ schedulingResolution = 1//2
     @test Schedule(emp1) == emp1sched
     @testset "Generate Employee($T) with empty Schedule" for T in (Int, Float64, Rational{Int})
         @test isempty(SPS.emptySchedule(T))
-        tmpEmp = Employee(string(T), SPS.emptySchedule(T), 1)
+        tmpEmp = Employee(string(T), SPS.emptySchedule(T))
         @test typeof(tmpEmp) <: Employee{T}
         @test isempty(Schedule(tmpEmp))
     end
@@ -68,7 +68,7 @@ end
     # An EmployeeList is just a list of employees...
 
     emp2sched = Schedule([(8, 10)], [(0, 0)], [(0, 0)], [(0, 0)], [(0, 0)])
-    emp2 = Employee("Limited", emp2sched, 0)
+    emp2 = Employee("Limited", emp2sched)
 
     employees = [emp1, emp2]
     @test isa(employees, EmployeeList)
