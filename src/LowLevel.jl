@@ -42,7 +42,7 @@ Transform the "user-facing" `sched::Schedule` object to a `BitVector` for intern
 The increment `increment` is interpreted as a fraction of an hour.
 """
 function to_vec(sched::Schedule, increment::Real = 1)
-    BitVector(_length(sched, increment))
+    BitVector(_sps_vec_length(sched, increment))
 end
 
 """
@@ -52,18 +52,22 @@ Transforms the schedule component(s) of `e::Employee` or `e::EmployeeList`
 to a `BitVector`.
 """
 to_vec(e::Employee, increment::Real = 1) = to_vec(Schedule(e), increment)
-to_vec(e::EmployeeList, increment::Real = 1) = BitVector(sum(_length(Schedule(t), increment) for t in e))
+to_vec(e::EmployeeList, increment::Real = 1) = BitVector(sum(_lengths(e, increment)))
 
+###
+# Helpers for conversion between high-level UI and these lower-level constructs
+###
 """
     _to_raw_sched(orig, vec, increment)
 
 Re-construct a schedule including only the times scheduled out of `orig::Schedule`
-from the yes/no options in `vec::BitVector` constructed from orig using increment `increment`
+from the yes/no options in `vec::BitVector` constructed from orig using increment `increment`.
 
 `_to_raw_sched` makes an attempt to condense overlapping scheduled times to one longer
 scheduled time.
 """
 function _to_raw_sched(orig, vec, increment)
+    #TODO: Separate basic translation from vector to schedule from schedule consolidation.
     vecindex = 0
     timeIncrement = Dates.Minute(60*increment)
     rawSched = emptySchedule(Float64)
@@ -98,7 +102,14 @@ function _to_raw_sched(orig, vec, increment)
 end
 
 """
+to_sched(bs)
 
+Re-construct a schedule including only the times scheduled out of `bs::BitSchedule`.
+
+`to_sched` also operates on `orig::Employee` and `orig::EmployeeList`.
+
+The current implementation is entirely contained in _to_raw_sched, but more separation into
+separate functionality is planned.
 """
 function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1)
     _to_raw_sched(orig, vec, increment)
@@ -115,3 +126,110 @@ function to_sched(orig::EmployeeList, vec::AbstractVector{Bool}, increment::Real
     end
     empsOut
 end
+
+###
+# Types below encapsulate low-level information about the control vector
+###
+function _create_times_vec!(times::Vector{Float64}, s::Schedule{T}, timesInd::Int = 1, increment::Real = 1) where {T<:Number}
+    floatIncrement = Float64(increment)
+    for (i, day) in enumerate(_to_iter(s))
+        for block in day
+            blockStart = first(block)
+            nBlockValues = _vec_len(block, increment)
+            for j in 0:(nBlockValues - 1)
+                times[timesInd + j] = (blockStart + j * floatIncrement) + 100i
+            end
+            timesInd += nBlockValues
+        end
+    end
+    timesInd
+end
+"""
+    BitSchedule(sched, vec, times, increment)
+
+Encapsulates the time information corresponding to each element of `vec::BitVector`
+in the `times::Vector{Float64}` vector; each time in `times` is encoded in the form
+`ijj.mmm` where `i` is the day number, `jj` is the hour number, and `mmm` is the
+fraction of an hour corresponding to the element in `vec`. The `sched::Schedule` and
+`increment` are retained to avoid recomputing parameters.
+"""
+struct BitSchedule{T<:Number}
+    sched::Schedule{T}
+    vec::BitVector
+    times::Vector{Float64}
+    increment::Float64
+    function BitSchedule(s::Schedule{T}, increment::Real = 1) where {T<:Number}
+        vec = to_vec(s, increment)
+        times = Vector{Float64}(length(vec))
+        _create_times_vec!(times, s, 1, increment)
+        new{T}(s, vec, times, Float64(increment))
+    end
+end
+
+struct BitScheduleList{T<:Number}
+    employees::EmployeeList{T}
+    vec::BitVector
+    times::Vector{Float64}
+    increment::Float64
+    function BitScheduleList(empList::EmployeeList{T}, increment::Real = 1) where {T<:Number}
+        vec = to_vec(empList, increment)
+        times = Vector{Float64}(length(vec))
+        accum = 1
+        for e in empList
+            accum = _create_times_vec!(times, e.avail, accum, increment)
+        end
+        new{T}(empList, vec, times, Float64(increment))
+    end
+end
+
+###
+# Helpers for functional generation
+###
+
+"""
+to_adjacency_mat(sched, vec, increment)
+
+For each entry in `vec::BitVector` generated from `sched::Schedule`, determine which other entries
+in `vec` are adjacent in real time, assuming they were generated with increment `increment`.
+
+Returns a AbstractMatrix{Bool} containing adjacency information.
+"""
+function to_adjacency_mat(vec::BitVector, times::Vector{Float64}, increment::Real)
+    nv = length(vec)
+    bmo = Tridiagonal(BitVector(nv-1), BitVector(nv), BitVector(nv-1))
+    floatIncrement = Float64(increment)
+    bmo[1, 2] = isapprox(times[2], times[1] + floatIncrement)
+    for i in 2:(nv-1)
+        bmo[i, i - 1] = isapprox(times[i], times[i - 1] + floatIncrement)
+        bmo[i, i + 1] = isapprox(times[i], times[i + 1] - floatIncrement)
+    end
+    bmo[nv, nv - 1] = isapprox(times[nv], times[nv - 1] + floatIncrement)
+    bmo
+end
+
+"""
+    to_adjacency_mat(bs)
+
+Evaluate `to_adjacency_mat` on the `vec` and `times` components of `bs::BitSchedule`
+"""
+to_adjacency_mat(bs::BitSchedule) = to_adjacency_mat(bs.vec, bs.times, bs.increment)
+
+"""
+to_overlap_mat(empList, times)
+
+For each entry in `times::Vector{Float64}`, determine which other entries occur at the same time.
+
+Returns an AbstractMatrix{Bool} containing overlap information. That is, if the element in
+position [i, j] is true, then times[i] == times[j].
+"""
+function to_overlap_mat(times::Vector{Float64})
+    nv = length(times)
+    bmo = falses(nv, nv)
+    for (i, t) in enumerate(times)
+        sameInd = times .== t
+        bmo[i, sameInd] = true
+    end
+    
+    Symmetric(bmo)
+end
+to_overlap_mat(bsl::BitScheduleList) = to_overlap_mat(bsl.times)
