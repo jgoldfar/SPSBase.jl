@@ -1,11 +1,11 @@
-using SPS
+using SPSBase
 @static if VERSION >= v"0.7-"
     using Test
 else
     using Base.Test
 end
 
-@testset "SPS" begin
+@testset "SPSBase" begin
 
 include("UIObjects.jl")
 
