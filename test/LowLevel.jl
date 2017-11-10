@@ -1,4 +1,4 @@
-using SPS
+using SPSBase
 @static if VERSION >= v"0.7-"
     using Test
 else
@@ -23,55 +23,55 @@ schedulingResolution = 1//2
 
 @testset "Basic Vectorization Functionality" begin
     # Filling all of an employee's time makes to_vec and to_sched inverse functions when operating on Schedule objects
-    emp1schedVec = SPS.to_vec(emp1sched, schedulingResolution)
+    emp1schedVec = SPSBase.to_vec(emp1sched, schedulingResolution)
     fill!(emp1schedVec, true)
-    @test SPS.schedules_isapprox(SPS.to_sched(emp1sched, emp1schedVec, schedulingResolution), emp1sched)
+    @test SPSBase.schedules_isapprox(SPSBase.to_sched(emp1sched, emp1schedVec, schedulingResolution), emp1sched)
     
-    emp2schedVec = SPS.to_vec(emp2sched, schedulingResolution)
+    emp2schedVec = SPSBase.to_vec(emp2sched, schedulingResolution)
     fill!(emp2schedVec, true)
-    @test SPS.schedules_isapprox(SPS.to_sched(emp2sched, emp2schedVec, schedulingResolution), emp2sched)
+    @test SPSBase.schedules_isapprox(SPSBase.to_sched(emp2sched, emp2schedVec, schedulingResolution), emp2sched)
     
     for T in (Int, Float64, Rational{Int})
-        shouldBeEmpty = SPS.emptySchedule(T)
-        @test SPS._sps_vec_length(shouldBeEmpty, schedulingResolution) == 0
-        @test SPS._sps_vec_length(shouldBeEmpty.day1, schedulingResolution) == 0
+        shouldBeEmpty = SPSBase.emptySchedule(T)
+        @test SPSBase._sps_vec_length(shouldBeEmpty, schedulingResolution) == 0
+        @test SPSBase._sps_vec_length(shouldBeEmpty.day1, schedulingResolution) == 0
     end
 
     # Test that to_Vec works with an Employee object
-    emp2Vec = SPS.to_vec(emp2, schedulingResolution)
+    emp2Vec = SPSBase.to_vec(emp2, schedulingResolution)
     fill!(emp2Vec, true)
     @test emp2schedVec == emp2Vec
     # Same invariant as with the underlying schedule object
-    @test SPS.schedules_isapprox(Schedule(SPS.to_sched(emp2, emp2Vec, schedulingResolution)), emp2sched)
+    @test SPSBase.schedules_isapprox(Schedule(SPSBase.to_sched(emp2, emp2Vec, schedulingResolution)), emp2sched)
     @test length(emp2Vec) == length(emp2schedVec)
     @test length(emp2Vec) == 4
     # Doubling the resolution doubles the number of elements
-    @test length(SPS.to_vec(emp2sched, 1//4)) == 2*length(SPS.to_vec(emp2sched, 1//2))
+    @test length(SPSBase.to_vec(emp2sched, 1//4)) == 2*length(SPSBase.to_vec(emp2sched, 1//2))
 end
 
 @testset "Correctness of _to_raw_sched" begin
     testSched1 = Schedule(Dict(:day1 => [(9, 10)]))
     testSched1Resolution = 1//4
-    testSched1Vec = SPS.to_vec(testSched1, testSched1Resolution)
+    testSched1Vec = SPSBase.to_vec(testSched1, testSched1Resolution)
     testSched1Vec[1] = true
     testSched1Vec[2] = true
-    rawSched1 = SPS._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
+    rawSched1 = SPSBase._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
     @test length(rawSched1.day1) == 1 && first(rawSched1) == (9.0, 9.5)
 
     testSched1Vec[2] = false
     testSched1Vec[3] = true
-    rawSched1 = SPS._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
+    rawSched1 = SPSBase._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
     @test length(rawSched1.day1) == 2 && first(rawSched1) == (9.0, 9.25)
 
     testSched2 = Schedule(Dict(:day1 => [(9, 11)], :day2 => [(13, 15), (15, 16)]))
     testSched2Resolution = 1//2
-    testSched2Vec = SPS.to_vec(testSched2, testSched2Resolution)
+    testSched2Vec = SPSBase.to_vec(testSched2, testSched2Resolution)
     testSched2Vec[1] = true
     testSched2Vec[2] = true
     testSched2Vec[7] = true
     testSched2Vec[8] = true
     testSched2Vec[9] = true
-    rawSched2 = SPS._to_raw_sched(testSched2, testSched2Vec, testSched2Resolution)
+    rawSched2 = SPSBase._to_raw_sched(testSched2, testSched2Vec, testSched2Resolution)
     @test_broken length(rawSched2) == 2
     @test length(rawSched2.day1) == 1 && first(rawSched2.day1) == (9.0, 10.0)
     @test_broken length(rawSched2.day2) == 1 && first(rawSched2.day2) == (14.0, 15.5)
@@ -85,14 +85,14 @@ end
         [(9, 9)],
         [(9, 9)]
         )
-    bs = SPS.BitSchedule(bsTestSched, schedulingResolution)
-    nvExpected = SPS._sps_vec_length(bsTestSched, schedulingResolution)
+    bs = SPSBase.BitSchedule(bsTestSched, schedulingResolution)
+    nvExpected = SPSBase._sps_vec_length(bsTestSched, schedulingResolution)
     @test length(bs.vec) == length(bs.times) == nvExpected
     @test isapprox(first(bs.times), first(first(bs.sched.day1)) + 100)
     @test !any(bs.times .<= 100.0)
     @test isapprox(bs.increment, schedulingResolution)
     @testset "to_adjacency_mat" begin
-        bsAdjacencyMatrix = SPS.to_adjacency_mat(bs)
+        bsAdjacencyMatrix = SPSBase.to_adjacency_mat(bs)
         @test size(bsAdjacencyMatrix) == (nvExpected, nvExpected)
         @test all(transpose(bsAdjacencyMatrix) .== bsAdjacencyMatrix)
         # 8 is adjacent to 8+1//2 and 8 + 1//2 is adjacent to 8 + 1//2 + 1//2
@@ -102,7 +102,7 @@ end
     end
     @testset "Vectorization" begin
         fill!(bs.vec, true)
-        @test SPS.schedules_isapprox(SPS.to_sched(bs), bsTestSched)
+        @test SPSBase.schedules_isapprox(SPSBase.to_sched(bs), bsTestSched)
     end
 end
 
@@ -118,45 +118,45 @@ end
     )
     
     # Test vectorization of a list of employees
-    employeesVec = SPS.to_vec(employees, schedulingResolution)
+    employeesVec = SPSBase.to_vec(employees, schedulingResolution)
     fill!(employeesVec, true)
 
     # The length of the vectorized employeelist should be the sum of the lengths of its member vectors
-    length_emp2Vec = length(SPS.to_vec(emp2, schedulingResolution))
+    length_emp2Vec = length(SPSBase.to_vec(emp2, schedulingResolution))
     length_emp2Components = nEmployees*length_emp2Vec
     length_employeesVec = length(employeesVec)
-    length_emp3Vec = length(SPS.to_vec(emp3, schedulingResolution))
+    length_emp3Vec = length(SPSBase.to_vec(emp3, schedulingResolution))
     @test length_employeesVec == length_emp2Components + length_emp3Vec
 
     # to_vec and to_sched are nearly inverse functions
-    employeeSchedules = SPS.to_sched(employees, employeesVec, schedulingResolution)
+    employeeSchedules = SPSBase.to_sched(employees, employeesVec, schedulingResolution)
     for (i, v) in enumerate(employees)
-        @test SPS.schedules_isapprox(Schedule(employeeSchedules[i]), Schedule(v))
+        @test SPSBase.schedules_isapprox(Schedule(employeeSchedules[i]), Schedule(v))
         @test employeeSchedules[i].name == v.name && employeeSchedules[i].specialty == v.specialty
     end
 
     @testset "BitScheduleList" begin
-        bsl = SPS.BitScheduleList(employees, schedulingResolution)
+        bsl = SPSBase.BitScheduleList(employees, schedulingResolution)
         @test !any(bsl.times .<= 1.0)
         @test isapprox(bsl.increment, schedulingResolution)
         
         @testset "to_adjacency_mat" begin
-            emp2bs = SPS.BitSchedule(emp2.avail, schedulingResolution)
-            emp2AdjacencyMatrix = SPS.to_adjacency_mat(emp2bs)
-            bslAdjacencyMatrices = SPS._to_adjacency_mat(bsl)
+            emp2bs = SPSBase.BitSchedule(emp2.avail, schedulingResolution)
+            emp2AdjacencyMatrix = SPSBase.to_adjacency_mat(emp2bs)
+            bslAdjacencyMatrices = SPSBase._to_adjacency_mat(bsl)
             @test all(mat == emp2AdjacencyMatrix for mat in bslAdjacencyMatrices[1:nEmployees])
             @test length(bslAdjacencyMatrices) == length(employees)
-            emp3bs = SPS.BitSchedule(emp3.avail, schedulingResolution)
-            emp3AdjacencyMatrix = SPS.to_adjacency_mat(emp3bs)
+            emp3bs = SPSBase.BitSchedule(emp3.avail, schedulingResolution)
+            emp3AdjacencyMatrix = SPSBase.to_adjacency_mat(emp3bs)
             @test bslAdjacencyMatrices[end] == emp3AdjacencyMatrix
 
-            bslAdjacencyMatrix = SPS.to_adjacency_mat(bsl)
+            bslAdjacencyMatrix = SPSBase.to_adjacency_mat(bsl)
             @test bslAdjacencyMatrix[1:length_emp2Vec, 1:length_emp2Vec] == emp2AdjacencyMatrix
             @test bslAdjacencyMatrix[(end-length_emp3Vec+1):end, (end-length_emp3Vec+1):end] == emp3AdjacencyMatrix
         end
 
         @testset "to_overlap_mat" begin
-            bslOverlapMatrix = SPS.to_overlap_mat(bsl)
+            bslOverlapMatrix = SPSBase.to_overlap_mat(bsl)
             @test all(diag(bslOverlapMatrix))
             @test !any(diag(bslOverlapMatrix, 1))
             correctRepeatingStructure = true
@@ -180,15 +180,15 @@ end
             end
             @test correctStructure
 
-            @test all(SPS.to_overlap_mat([1.0, 1.0, 1.0]))
+            @test all(SPSBase.to_overlap_mat([1.0, 1.0, 1.0]))
 
-            bslOverlapMatrix2 = SPS.to_overlap_mat([1.0, 2.0, 1.5, 1.0])
+            bslOverlapMatrix2 = SPSBase.to_overlap_mat([1.0, 2.0, 1.5, 1.0])
             @test bslOverlapMatrix2 == [true false false true;
                                         false true false false;
                                         false false true false;
                                         true false false true]
 
-            bslOverlapMatrix3 = SPS.to_overlap_mat([1.1, 1.01, 1.1, 1.1])
+            bslOverlapMatrix3 = SPSBase.to_overlap_mat([1.1, 1.01, 1.1, 1.1])
             @test bslOverlapMatrix3 == [true false true true;
                                         false true false false;
                                         true false true true;
@@ -196,8 +196,8 @@ end
         end
         @testset "to_sched" begin
             fill!(bsl.vec, true)
-            bslSched = SPS.to_sched(bsl)
-            @test all(SPS.schedules_isapprox(bslSched[i].avail, employeeSchedules[i].avail) for i in 1:length(bslSched)) 
+            bslSched = SPSBase.to_sched(bsl)
+            @test all(SPSBase.schedules_isapprox(bslSched[i].avail, employeeSchedules[i].avail) for i in 1:length(bslSched)) 
         end
     end
 end

@@ -51,7 +51,7 @@ allows more ergonomic creation of sparse schedules.
 
 ## Example ##
 ```
-SPS.Schedule(
+SPSBase.Schedule(
     Dict(:day1 => [(9,9)], :day4 => [(10, 13), (16, 21)])
     )
 ```

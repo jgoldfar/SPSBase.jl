@@ -7,6 +7,8 @@ include("UIObjectsSupport.jl")
 
 include("LowLevel.jl")
 
+export generateFunctional, generateFunctionalAndControlVector
+
 function generateFunctional(bsl::BitScheduleList, baseWeightVec::Vector{Float64}, adjBenefit::Real = 0.1)
     adjMat = to_adjacency_mat(bsl)
     times = bsl.times

@@ -23,10 +23,10 @@ include("LowLevel.jl")
     )
     schedulingResolution = 1//2
     
-    J, bsl = SPS.generateFunctionalAndControlVector(employees, schedulingResolution)
+    J, bsl = SPSBase.generateFunctionalAndControlVector(employees, schedulingResolution)
     nv = length(bsl.vec)
     @test typeof(J) <: Function
-    @test typeof(bsl) <: SPS.BitScheduleList
+    @test typeof(bsl) <: SPSBase.BitScheduleList
 
     bslv = falses(nv)
     @test isapprox(J(bslv), 0)

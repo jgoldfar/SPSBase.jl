@@ -1,4 +1,4 @@
-using SPS
+using SPSBase
 @static if VERSION >= v"0.7-"
     using Test
 else
@@ -22,8 +22,8 @@ schedulingResolution = 1//2
 @testset "Basic Schedule/Employee Functionality" begin
     @test Schedule(emp1) == emp1sched
     @testset "Generate Employee($T) with empty Schedule" for T in (Int, Float64, Rational{Int})
-        @test isempty(SPS.emptySchedule(T))
-        tmpEmp = Employee(string(T), SPS.emptySchedule(T))
+        @test isempty(SPSBase.emptySchedule(T))
+        tmpEmp = Employee(string(T), SPSBase.emptySchedule(T))
         @test typeof(tmpEmp) <: Employee{T}
         @test isempty(Schedule(tmpEmp))
     end
@@ -36,7 +36,7 @@ schedulingResolution = 1//2
         (9, 16)
     ]
     # s_min clamps the given schedule to the overall schedule osched
-    emp1schedmin = SPS.s_min(emp1sched, osched)
+    emp1schedmin = SPSBase.s_min(emp1sched, osched)
     @test length(emp1schedmin.day1) == length(emp1sched.day1)
     @test first(emp1schedmin.day1[1]) == first(osched[1])
     end
@@ -50,7 +50,7 @@ schedulingResolution = 1//2
         [(9.0, 17.0)],
         [(9.0, 9.0), (13.0, 16.0)]
         )
-    @test !SPS.schedules_isapprox(emp1sched, emp1schedDifferent)
+    @test !SPSBase.schedules_isapprox(emp1sched, emp1schedDifferent)
 
     # emp1schedFloat is indistinguishable from emp1sched
     emp1schedFloat = Schedule(
@@ -60,7 +60,7 @@ schedulingResolution = 1//2
         [(9.0, 17.0)],
         [(9.0, 9.0), (13.0, 16.0)]
         )
-    @test SPS.schedules_isapprox(emp1sched, emp1schedFloat)
+    @test SPSBase.schedules_isapprox(emp1sched, emp1schedFloat)
     end
 end
 
