@@ -13,7 +13,7 @@ include("UIObjectsSupport.jl")
 
 include("LowLevel.jl")
 
-@testset "generateFunctionalAndControlVector" begin
+@testset "Main" begin
     nEmployees = 4
     emp2sched = Schedule([(8, 10)], [(0, 0)], [(0, 0)], [(0, 0)], [(0, 0)])
     emp3 = Employee("Limited $(nEmployees + 1)", Schedule([(0, 0)], [(8, 10), (12, 13)], [(0, 0)], [(8, 10)], [(0, 0)]), Inf, nEmployees + 1)
@@ -22,39 +22,54 @@ include("LowLevel.jl")
         emp3
     )
     schedulingResolution = 1//2
-    
+
     J, bsl = SPSBase.generateFunctionalAndControlVector(employees, schedulingResolution)
-    nv = length(bsl.vec)
-    @test typeof(J) <: Function
-    @test typeof(bsl) <: SPSBase.BitScheduleList
 
-    bslv = falses(nv)
-    @test isapprox(J(bslv), 0)
-    
-    bslv[1] = true
-    JWith1True = J(bslv)
-    @test JWith1True > 0
+    @testset "generateEmployeeMat" begin
 
-    bslv[1] = true
-    bslv[2] = true
-    JWith2True = J(bslv)
-    @test JWith2True > JWith1True
+        indRanges = SPSBase.getEmployeeIndices(bsl)
+        indMat = SPSBase.generateEmployeeMat(bsl)
+        indMatStructureCorrect = true
+        for (i, inds) in enumerate(indRanges)
+            indMatStructureCorrect = indMatStructureCorrect && 
+            all(isapprox(v, 1) for v in indMat[inds, inds]) &&
+            all(isapprox(v, 0) for v in indMat[inds, (last(inds)+1):end]) && 
+            all(isapprox(v, 0) for v in indMat[(last(inds)+1):end, inds])
+        end
+        @test indMatStructureCorrect
+    end
 
-    bslv[1] = true
-    bslv[2] = false
-    bslv[5] = true # Coincides with bslv[1]
-    @test JWith2True > J(bslv) > JWith1True
+    @testset "generateFunctionalAndControlVector" begin    
+        nv = length(bsl.vec)
+        @test typeof(J) <: Function
+        @test typeof(bsl) <: SPSBase.BitScheduleList
 
-    bslv[1] = true
-    bslv[2] = true
-    bslv[5] = false
-    JWithAdjacentTrue = J(bslv)
-    bslv[2] = false
-    bslv[3] = true
-    JWithNonAdjacentTrue = J(bslv)
-    @test JWithAdjacentTrue > JWithNonAdjacentTrue
+        bslv = falses(nv)
+        @test isapprox(J(bslv), 0)
+        
+        bslv[1] = true
+        JWith1True = J(bslv)
+        @test JWith1True > 0
 
+        bslv[1] = true
+        bslv[2] = true
+        JWith2True = J(bslv)
+        @test JWith2True > JWith1True
 
+        bslv[1] = true
+        bslv[2] = false
+        bslv[5] = true # Coincides with bslv[1]
+        @test JWith2True > J(bslv) > JWith1True
+
+        bslv[1] = true
+        bslv[2] = true
+        bslv[5] = false
+        JWithAdjacentTrue = J(bslv)
+        bslv[2] = false
+        bslv[3] = true
+        JWithNonAdjacentTrue = J(bslv)
+        @test JWithAdjacentTrue > JWithNonAdjacentTrue
+
+    end
 end
-
 end # testset
