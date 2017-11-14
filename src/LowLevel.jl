@@ -197,6 +197,18 @@ to_sched(orig::BitScheduleList) = to_sched(orig.employees, orig.vec, orig.increm
 # Helpers for functional generation
 ###
 
+getEmployeeIndices(bsl::BitScheduleList) = getEmployeeIndices(bsl.employees, bsl.increment)
+function getEmployeeIndices(empList::EmployeeList, increment::Real)
+    empInds = Vector{typeof(1:2)}(length(empList))
+    ind = 1
+    for (i, emp) in enumerate(empList)
+        ne = _sps_vec_length(emp.avail, increment)
+        empInds[i] = ind:(ind + ne - 1)
+        ind += ne
+    end
+    empInds
+end
+
 """
 to_adjacency_mat(sched, vec, increment)
 

@@ -199,6 +199,16 @@ end
             bslSched = SPSBase.to_sched(bsl)
             @test all(SPSBase.schedules_isapprox(bslSched[i].avail, employeeSchedules[i].avail) for i in 1:length(bslSched)) 
         end
+        @testset "getEmployeeIndices" begin
+            inds = SPSBase.getEmployeeIndices(bsl)
+            @test length(inds) == length(employees)
+            emp2LengthsCorrect = true
+            for i in 1:nEmployees
+                emp2LengthsCorrect = emp2LengthsCorrect && length(inds[i]) == length_emp2Vec
+            end
+            @test emp2LengthsCorrect
+            @test length(inds[end]) == length_emp3Vec
+        end
     end
 end
 end # testset
