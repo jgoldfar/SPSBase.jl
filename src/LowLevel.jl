@@ -227,8 +227,18 @@ to_adjacency_mat(bs::BitSchedule) = to_adjacency_mat(bs.times, bs.increment)
 
 function _to_adjacency_mat(bsl::BitScheduleList)
     timesInd = 1
-    adjMats = Vector{Tridiagonal{Bool, BitVector}}(length(bsl.employees))
-    for (i, e) in enumerate(bsl.employees)
+    ne1 = _sps_vec_length(bsl.employees[1].avail, bsl.increment)
+    adjMat1 = to_adjacency_mat(bsl.times[timesInd:(timesInd + ne1 - 1)], bsl.increment)
+    
+
+    #NOTE: Explicit assumption about structure of bsl.employees.
+    nEmployees = length(bsl.employees)
+    adjMats = Vector{typeof(adjMat1)}(nEmployees)
+    adjMats[1] = adjMat1
+    timesInd += ne1
+    
+    for i in 2:nEmployees
+        e = bsl.employees[i]
         ne = _sps_vec_length(e.avail, bsl.increment)
         adjMats[i] = to_adjacency_mat(bsl.times[timesInd:(timesInd + ne - 1)], bsl.increment)
         timesInd += ne
