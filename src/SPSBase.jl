@@ -68,6 +68,7 @@ function generateFunctionalAndControlVector(el::EmployeeList, increment::Real = 
     J = generateFunctional(bsl, np*ones(Float64, nv), adjBenefit)
     J, bsl
 end
-include("precompile.jl")
+
+# include("precompile.jl")
 
 end
