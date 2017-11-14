@@ -146,6 +146,8 @@ function _create_times_vec!(times::Vector{Float64}, s::Schedule{T}, timesInd::In
     timesInd
 end
 
+export BitSchedule, BitScheduleList
+
 """
     BitSchedule(sched, vec, times, increment)
 
