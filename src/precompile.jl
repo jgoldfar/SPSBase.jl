@@ -12,8 +12,12 @@ for T in (Int, Float64)
         precompile(generateFunctionalAndControlVector, (EmployeeList{T}, T2, T2))
         precompile(generateFunctionalAndControlVector, (EmployeeList{T}, Vector{Float64}, T2, T2))
         precompile(generateFunctional, (BitScheduleList{T}, Vector{Float64}, T2))
+        precompile(generateWeightMat, (Vector{T}, Vector{T2}))
+        precompile(getEmployeeIndices, (EmployeeList{T}, T2))
     end
-
+    
+    precompile(generateEmployeeMat, (BitScheduleList{T}))
+    precompile(getEmployeeIndices, (BitScheduleList{T}))
     precompile(_create_times_vec!, (Vector{Float64}, Schedule{T}, Int, T))
     precompile(to_adjacency_mat, (BitVector, Vector{Float64}, T))
     precompile(to_overlap_mat, (Vector{Float64},))
