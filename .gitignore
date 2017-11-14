@@ -1,1 +1,5 @@
 \papers
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+/.hgtags

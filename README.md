@@ -1,6 +1,6 @@
 # README #
 
-SPSBase.jl defines the base constructs for SPS.jl, a user-friendly and fast employee scheduling solver written in Julia.
+SPSBase.jl defines the base constructs for a user-friendly and fast employee scheduling solver written in Julia.
 
 Version: v1.0-pre
 
