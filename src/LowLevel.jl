@@ -57,6 +57,11 @@ to_vec(e::EmployeeList, increment::Real = 1) = BitVector(sum(_lengths(e, increme
 ###
 # Helpers for conversion between high-level UI and these lower-level constructs
 ###
+@static if VERSION >= v"0.7-"
+    import Dates
+else
+    import Base.Dates
+end
 """
     _to_raw_sched(orig, vec, increment)
 
