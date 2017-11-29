@@ -187,8 +187,8 @@ struct Employee{T}
     maxTime::Float64
     specialty::Int
 end
-function Employee(name::String, s::Schedule{T}) where {T}
-    Employee(name, s, Inf, 0)
+function Employee(name::String, s::Schedule{T}, maxTime::Float64 = Inf64) where {T}
+    Employee(name, s, maxTime, 0)
 end
 Base.convert(::Type{Schedule}, e::Employee) = e.avail
 
