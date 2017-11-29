@@ -65,6 +65,24 @@ schedulingResolution = 1//2
         [(9.0, 9.0), (13.0, 16.0)]
         )
     @test SPSBase.schedules_isapprox(emp1sched, emp1schedFloat)
+
+    empShortSched = Schedule(
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[(13.0, 16.0)]
+    )
+    @test !SPSBase.schedules_isapprox(emp1sched, empShortSched)
+
+    empShortSchedMod = Schedule(
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[],
+        Tuple{Float64, Float64}[(13.0, 16.1)]
+    )
+    @test !SPSBase.schedules_isapprox(empShortSchedMod, empShortSched)
     end
 end
 
