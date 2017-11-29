@@ -115,13 +115,13 @@ and `orig::BitScheduleList`.
 The current implementation is entirely contained in _to_raw_sched, but more separation into
 separate functionality is planned.
 """
-function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1)
+function to_sched(orig::Schedule, vec::AbstractVector{Bool}, increment::Real = 1)::Schedule{Float64}
     _to_raw_sched(orig, vec, increment)
 end
-function to_sched(orig::Employee, vec::AbstractVector{Bool}, increment::Real = 1)
+function to_sched(orig::Employee, vec::AbstractVector{Bool}, increment::Real = 1)::Employee{Float64}
     Employee(orig.name, to_sched(Schedule(orig), vec, increment), orig.maxTime, orig.specialty)
 end
-function to_sched(orig::EmployeeList, vec::AbstractVector{Bool}, increment::Real = 1)
+function to_sched(orig::EmployeeList, vec::AbstractVector{Bool}, increment::Real = 1)::EmployeeList{Float64}
     empsOut = Employee[]
     accum = 1
     for emp in orig

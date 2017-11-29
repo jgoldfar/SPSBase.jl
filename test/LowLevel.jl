@@ -130,6 +130,8 @@ end
 
     # to_vec and to_sched are nearly inverse functions
     employeeSchedules = SPSBase.to_sched(employees, employeesVec, schedulingResolution)
+    @inferred SPSBase.to_sched(employees, employeesVec, schedulingResolution)
+    
     for (i, v) in enumerate(employees)
         @test SPSBase.schedules_isapprox(Schedule(employeeSchedules[i]), Schedule(v))
         @test employeeSchedules[i].name == v.name && employeeSchedules[i].specialty == v.specialty
@@ -198,6 +200,8 @@ end
             fill!(bsl.vec, true)
             bslSched = SPSBase.to_sched(bsl)
             @test all(SPSBase.schedules_isapprox(bslSched[i].avail, employeeSchedules[i].avail) for i in 1:length(bslSched)) 
+
+            @inferred SPSBase.to_sched(bsl)
         end
         @testset "getEmployeeIndices" begin
             inds = SPSBase.getEmployeeIndices(bsl)
