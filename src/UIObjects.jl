@@ -173,7 +173,7 @@ end
 ###
 # Employee and EmployeeList
 ###
-export Employee, EmployeeList
+export Employee, EmployeeList, avail
 
 """
     Employee(name, avail, specialty)
@@ -191,6 +191,16 @@ function Employee(name::String, s::Schedule{T}) where {T}
     Employee(name, s, Inf, 0)
 end
 Base.convert(::Type{Schedule}, e::Employee) = e.avail
+
+function avail(e::Employee{T}) where {T}
+    e.avail
+end
+function avail(e::Employee{T}, s::Symbol) where {T}
+    getfield(avail(e), s)
+end
+function avail(e::Employee{T}, n::Int) where {T}
+    avail(e, Symbol(:day, n))
+end
 
 """
     EmployeeList
