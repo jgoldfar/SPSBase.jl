@@ -21,6 +21,10 @@ schedulingResolution = 1//2
 
 @testset "Basic Schedule/Employee Functionality" begin
     @test Schedule(emp1) == emp1sched
+    @test avail(emp1) == emp1sched
+    @test avail(emp1, 1) == emp1sched.day1
+    @test avail(emp1, :day1) == emp1sched.day1
+
     @testset "Generate Employee($T) with empty Schedule" for T in (Int, Float64, Rational{Int})
         @test isempty(SPSBase.emptySchedule(T))
         tmpEmp = Employee(string(T), SPSBase.emptySchedule(T))
