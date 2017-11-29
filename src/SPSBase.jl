@@ -56,17 +56,19 @@ function generateFunctional(bsl::BitScheduleList, baseWeightVec::Vector{Float64}
     J
 end
 
+#TODO: Add docs!
+function _default_weightVec(el::EmployeeList, increment::Real)
+    _default_weightVec(length(el), _sps_vec_length(el, increment))
+end
+_default_weightVec(np, nv, mod::Real = 1.0) = mod * np * ones(Float64, nv)
+
 function generateFunctionalAndControlVector(el::EmployeeList, baseWeightVec::Vector{Float64}, increment::Real = 1, adjBenefit::Real = 0.1)
     bsl = BitScheduleList(el, increment)
     J = generateFunctional(bsl, baseWeightVec, adjBenefit)
     J, bsl
 end
 function generateFunctionalAndControlVector(el::EmployeeList, increment::Real = 1, adjBenefit::Real = 0.1)
-    bsl = BitScheduleList(el, increment)
-    nv = length(bsl.vec)
-    np = length(el)
-    J = generateFunctional(bsl, np*ones(Float64, nv), adjBenefit)
-    J, bsl
+    generateFunctionalAndControlVector(el, _default_weightVec(el, increment), increment, adjBenefit)
 end
 
 # include("precompile.jl")
