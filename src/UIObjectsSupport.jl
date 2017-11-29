@@ -21,7 +21,7 @@ Return an iterator over the lengths of each field in `sched::Schedule`.
 _lengths(sched::Schedule) = map(length, _to_iter(sched))
 Base.length(sched::Schedule) = sum(_lengths(sched))
 Base.start(::Schedule) = 1
-function Base.next(sched::Schedule{T}, state::Int) where {T}
+function Base.next(sched::Schedule{T}, state::Int)::Tuple{Tuple{T,T}, Int} where {T}
     accum = 0
     for vec in _to_iter(sched)
         len = length(vec)
@@ -30,7 +30,6 @@ function Base.next(sched::Schedule{T}, state::Int) where {T}
         end
         accum += len
     end
-    return (zero(T), zero(T)), state + 1
 end
 Base.done(sched::Schedule, state::Int) = state > length(sched)
 Base.eltype(::Type{Schedule{T}}) where {T} = Tuple{T, T}
