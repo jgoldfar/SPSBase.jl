@@ -3,6 +3,12 @@ CHKTEX_ARGS=-n 3 -n 6
 TEX_SOURCES=$(wildcard *.tex)
 TEX_SOURCES_BASENAME=$(basename $(TEX_SOURCES))
 
+%.pdf: %.tex
+	$(LATEX) $<
+
+logo-standalone.png: logo-standalone.pdf
+	convert -density 150 $< -quality 90 $@
+
 clean: clean-fmt clean-check clean-srcs
 
 clean-all: clean clean-all-srcs
@@ -22,8 +28,6 @@ fmt: $(addsuffix .bak,$(TEX_SOURCES_BASENAME))
 clean-fmt:
 	$(RM) *.bak
 	$(RM) indent.log
-
-chktex-all: $(addprefix lint-,$(addsuffix .out,$(TEX_SOURCES_BASENAME)))
 
 clean-chktex:
 	$(RM) lint-*.out
