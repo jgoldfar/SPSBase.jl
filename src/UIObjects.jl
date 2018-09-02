@@ -190,7 +190,7 @@ end
 function Employee(name::String, s::Schedule{T}, maxTime::Float64 = Inf64) where {T}
     Employee(name, s, maxTime, 0)
 end
-Base.convert(::Type{Schedule}, e::Employee) = e.avail
+Schedule(e::Employee) = e.avail
 
 function avail(e::Employee{T}) where {T}
     e.avail

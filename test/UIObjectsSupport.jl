@@ -27,10 +27,12 @@ emp1sched = Schedule(
     end
     @test iterationsCompleted == length(emp1sched) # Iteration also works in for loop
 
-    @inferred Base.next(emp1sched, 1)
-
-    @inferred SPSBase._to_iter(emp1sched)
-    @inferred Base.getindex(emp1sched, 2)
+	@static if VERSION < v"0.7-"
+		@inferred Base.next(emp1sched, 1)
+	end
+	
+    #@inferred SPSBase._to_iter(emp1sched)
+    #@inferred Base.getindex(emp1sched, 2)
 
     @test emp1sched[3] == (18, 20) # Supports indexing
     @test emp1sched[end] == (13, 16) # Supports [end] syntax

@@ -1,6 +1,7 @@
 using SPSBase
 @static if VERSION >= v"0.7-"
     using Test
+    using LinearAlgebra
 else
     using Base.Test
 end
@@ -56,12 +57,14 @@ end
     testSched1Vec[1] = true
     testSched1Vec[2] = true
     rawSched1 = SPSBase._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
-    @test length(rawSched1.day1) == 1 && first(rawSched1) == (9.0, 9.5)
+    @test length(rawSched1.day1) == 1
+    @test first(rawSched1) == (9.0, 9.5)
 
     testSched1Vec[2] = false
     testSched1Vec[3] = true
     rawSched1 = SPSBase._to_raw_sched(testSched1, testSched1Vec, testSched1Resolution)
-    @test length(rawSched1.day1) == 2 && first(rawSched1) == (9.0, 9.25)
+    @test length(rawSched1.day1) == 2
+    @test first(rawSched1) == (9.0, 9.25)
 
     testSched2 = Schedule(Dict(:day1 => [(9, 11)], :day2 => [(13, 15), (15, 16)]))
     testSched2Resolution = 1//2
@@ -73,8 +76,10 @@ end
     testSched2Vec[9] = true
     rawSched2 = SPSBase._to_raw_sched(testSched2, testSched2Vec, testSched2Resolution)
     @test_broken length(rawSched2) == 2
-    @test length(rawSched2.day1) == 1 && first(rawSched2.day1) == (9.0, 10.0)
-    @test_broken length(rawSched2.day2) == 1 && first(rawSched2.day2) == (14.0, 15.5)
+    @test length(rawSched2.day1) == 1
+    @test first(rawSched2.day1) == (9.0, 10.0)
+    @test_broken length(rawSched2.day2) == 1
+    @test_broken first(rawSched2.day2) == (14.0, 15.5)
 end
 
 @testset "BitSchedule" begin
